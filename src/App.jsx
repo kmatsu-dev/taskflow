@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useSupabaseCollection } from "./lib/useSupabaseCollection";
+import { useAuth } from "./lib/auth.jsx";
+import AuthScreen from "./components/AuthScreen.jsx";
 
 const CATEGORIES = [
   { id: "prologue", label: "PROLG", emoji: "🏢", color: "#3B82F6", bg: "rgba(59,130,246,0.12)" },
@@ -182,8 +184,25 @@ const IdeaCard = ({ idea, onDelete }) => {
   );
 };
 
+/* ═══════════════════════ AUTH ROUTER ═══════════════════════ */
+export default function App() {
+  const { user, loading } = useAuth();
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: "100vh", background: "#0F1117", display: "flex",
+        alignItems: "center", justifyContent: "center",
+        color: "#6B7280", fontSize: 16, fontFamily: "'Outfit',sans-serif",
+      }}>読み込み中...</div>
+    );
+  }
+  if (!user) return <AuthScreen />;
+  return <TaskFlow user={user} />;
+}
+
 /* ═══════════════════════ MAIN APP ═══════════════════════ */
-export default function TaskFlow() {
+function TaskFlow({ user }) {
+  const { signOut } = useAuth();
   const {
     items: tasks,
     loaded: tasksLoaded,
@@ -221,7 +240,7 @@ export default function TaskFlow() {
     if (editTask) {
       await patchTask({ ...editTask, ...form, id: editTask.id });
     } else {
-      await addTask({ ...form, id: uid(), created_at: new Date().toISOString() });
+      await addTask({ ...form, id: uid(), user_id: user.id, created_at: new Date().toISOString() });
     }
     setShowAdd(false);
   };
@@ -233,6 +252,7 @@ export default function TaskFlow() {
     if (!ideaText.trim()) return;
     await addIdea({
       id: uid(),
+      user_id: user.id,
       text: ideaText.trim(),
       categories: ideaCat.length > 0 ? [...ideaCat] : [],
       created_at: new Date().toISOString(),
@@ -316,7 +336,7 @@ export default function TaskFlow() {
                 {today()} ・ Today {todayDone}/{todayTasks.length} done ・ Projects avg {avgProgress}%
               </p>
             </div>
-            <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <button onClick={() => setShowIdea(true)} title="アイデア追加"
                 style={{
                   width: 40, height: 40, borderRadius: 12, border: "1px solid rgba(245,158,11,0.3)",
@@ -332,6 +352,13 @@ export default function TaskFlow() {
                 }}>
                 <span style={{ fontSize: 18, lineHeight: 1 }}>+</span> タスク追加
               </button>
+              <button onClick={signOut} title={`ログアウト (${user.email})`}
+                style={{
+                  width: 40, height: 40, borderRadius: 12,
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  background: "transparent", color: "#9CA3AF", fontSize: 16, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>⏻</button>
             </div>
           </div>
 
