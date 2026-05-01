@@ -1,0 +1,1 @@
+{"name":"TaskFlow","short_name":"TaskFlow","description":"タスク管理アプリ","start_url":"/taskflow/","display":"standalone","background_color":"#0F1117","theme_color":"#0F1117","lang":"ja","scope":"/taskflow/","icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}
